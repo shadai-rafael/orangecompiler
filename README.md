@@ -1,2 +1,2 @@
 # orangecompiler
-My own compiler written in c++
+My own compiler written in c
