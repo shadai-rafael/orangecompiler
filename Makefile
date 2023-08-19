@@ -2,7 +2,10 @@ CC=gcc
 OBJECTS=compiler.o\
 	cprocess.o\
 	./utils/vector.o\
-	./utils/buffer.o
+	./utils/buffer.o\
+	lex_process.o\
+	lexer.o
+
 INCLUDE=-I./ -I./utils
 
 all: ${OBJECTS}

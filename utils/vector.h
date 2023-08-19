@@ -9,7 +9,10 @@
 
 #define VECTOR_ELEMENT_INCREMENT 20
 
-const uint8_t VECTOR_FLAG_PEEK_DECREMENT = 0b00000001;
+enum
+{
+    VECTOR_FLAG_PEEK_DECREMENT = 0b00000001
+};
 
 struct vector{
     void* data;

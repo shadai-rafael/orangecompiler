@@ -4,9 +4,36 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
+#include "utils/vector.h"
+
+/* enums */
+
+enum token_type
+{
+    TOKEN_TYPE_IDENTIFIER,
+    TOKEN_TYPE_KEYWORD,
+    TOKEN_TYPE_OPERATOR,
+    TOKEN_TYPE_SYMBOL,
+    TOKEN_TYPE_STRING,
+    TOKEN_TYPE_NUMBER,
+    TOKEN_TYPE_COMMENT,
+    TOKEN_TYPE_NEWLINE
+};
+
+enum lexical_analysis_status{
+    LEXICAL_ANALYSIS_SUCCESSFULL,
+    LEXICAL_ANALYSIS_INPUT_ERROR
+};
+
+enum compilation_status 
+{
+    COMPILATION_FINISHED_SUCCESSFULLY = 0,
+    COMPILATION_FINISHED_WITH_ERRORS = 1
+};
+
 
 /* structs */
-struct pos
+struct position
 {
     int line;
     int column;
@@ -33,8 +60,11 @@ struct token
 };
 
 
-struct compile_process{
+struct compile_process
+{
     int flags;
+
+    struct position pos;
 
     struct compile_process_input_file
     {
@@ -43,32 +73,44 @@ struct compile_process{
 
     }code_file;
 
-    FILE* output_file;
-    
+    FILE* output_file;    
 };
 
-/* enums */
+struct lexer_process;
 
-enum token_type
+typedef char (*LEX_PROCESS_NEXT_CHAR)(struct lexer_process*);
+typedef char (*LEX_PROCESS_PEEK_CHAR)(struct lexer_process*);
+typedef void (*LEX_PROCESS_PUSH_CHAR)(struct lexer_process*, char c );
+
+struct lexer_process_functions
 {
-    TOKEN_TYPE_IDENTIFIER,
-    TOKEN_TYPE_KEYWORD,
-    TOKEN_TYPE_OPERATOR,
-    TOKEN_TYPE_SYMBOL,
-    TOKEN_TYPE_STRING,
-    TOKEN_TYPE_NUMBER,
-    TOKEN_TYPE_COMMENT,
-    TOKEN_TYPE_NEWLINE
+    LEX_PROCESS_NEXT_CHAR next_char;
+    LEX_PROCESS_PEEK_CHAR peek_char;
+    LEX_PROCESS_PUSH_CHAR push_char;
 };
 
-enum compilation_status 
+struct lexer_process
 {
-    COMPILATION_FINISHED_SUCCESSFULLY = 0,
-    COMPILATION_FINISHED_WITH_ERRORS = 1
+    struct position pos;
+    struct vector* vec_tokens;
+    struct compile_process* compiler;
+    int current_expression_count;
+    struct buffer* parentheses_buffer;
+    struct lexer_process_functions* functions;
+    void* private;
 };
 
 /* prototype */
 int compile_file(const char* file_input_name, const char * file_output_name,int flags);
 struct compile_process* compile_process_create(const char* file_input_name, const char * file_output_name, int flags);
+char compile_process_next_char(struct lexer_process* lexer_process);
+char compile_process_peek_char(struct lexer_process* lexer_process);
+void compile_process_push_char(struct lexer_process* lexer_process, char c);
+struct lexer_process* lexer_process_create(struct compile_process* compile_process_p,
+    struct lexer_process_functions* lexer_process_functions_p, void* private_p);
+void lexer_process_free(struct lexer_process* lexer_process_p);
+void* get_lexer_process_private(struct lexer_process* lexer_process_p);
+struct vector* get_lexer_process_tokens(struct lexer_process* lexer_process_p);
+int lexer(struct lexer_process* lexer_process_p);
 
 #endif /*ORANGE_COMPILER_H*/
