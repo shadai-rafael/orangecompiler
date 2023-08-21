@@ -100,7 +100,7 @@ struct lexer_process
     void* private;
 };
 
-/* prototype */
+/* prototypes */
 int compile_file(const char* file_input_name, const char * file_output_name,int flags);
 struct compile_process* compile_process_create(const char* file_input_name, const char * file_output_name, int flags);
 char compile_process_next_char(struct lexer_process* lexer_process);

@@ -1,12 +1,6 @@
 #include "compiler.h"
 
-struct lexer_process_functions lexer_process_functions = {
-    .next_char = compile_process_next_char,
-    .peek_char = compile_process_peek_char,
-    .push_char = compile_process_push_char
-};
-
-struct compile_process* compile_process_create(const char* file_input_name, const char * file_output_name, int flags){
+struct compile_process* compile_process_create(const char* file_input_name, const char* file_output_name, int flags){
 
     FILE* file_input = fopen(file_input_name ,"r");
     if(!file_input){
@@ -23,18 +17,8 @@ struct compile_process* compile_process_create(const char* file_input_name, cons
     cprocess->flags = flags;
     cprocess->code_file.input_file = file_input;
     cprocess->output_file = file_output;
-
-    struct lexer_process* lexer_process_p = lexer_process_create(cprocess,
-        &lexer_process_functions, NULL);
-
-    if(!lexer_process_p){
-        return NULL;
-    }
-
-    if (lexer(lexer_process_p) != LEXICAL_ANALYSIS_SUCCESSFULL)
-    {
-        return NULL;
-    }
+    cprocess->pos.column = 1;
+    cprocess->pos.line = 1;
         
     return cprocess;
 }
