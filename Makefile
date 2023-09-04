@@ -1,3 +1,7 @@
+#MIT License
+#
+#Copyright (c) 2023 shadai-rafael
+
 CC=gcc
 
 OBJECTS=compiler.o\
