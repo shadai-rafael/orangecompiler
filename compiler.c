@@ -25,9 +25,9 @@ SOFTWARE.
 #include <stdarg.h>
 
 struct lexer_process_functions lexer_functions = {
-    .next_char = compile_process_next_char,
-    .peek_char = compile_process_peek_char,
-    .push_char = compile_process_push_char
+    .next_char = generic_next_char,
+    .peek_char = generic_peek_char,
+    .push_char = generic_push_char
 };
 
 void compiler_error(struct compile_process* compiler,const char* msg, ...){

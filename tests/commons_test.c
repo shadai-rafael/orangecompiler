@@ -21,22 +21,23 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
-#include "compiler_test.h"
-#include "lex_process_test.h"
-#include "vector_test.h"
 
-void setUp(void) {    
+#include "commons_test.h"
+
+void create_input_file(const char* file_content){
+   FILE *fp = fopen(TEST_INPUT_FILE, "w+");
+   fputs(file_content, fp);
+   fclose(fp);
+   return;
 }
 
-void tearDown(void) {
-    void cprocess_test_cleanup(void);
-}
-
-int main(void) {
-    UNITY_BEGIN();
-    RUN_TEST(test_vector_push_pop);
-    RUN_TEST(test_compile_process_create);
-    RUN_TEST(test_lexer_process_functions);
-    RUN_TEST(test_lexer);
-    return UNITY_END();
+void cprocess_cleanup(struct compile_process** cprocess, struct lexer_process** lexer_process_p){
+    fclose((*cprocess)->code_file.input_file);
+    fclose((*cprocess)->output_file);
+    remove(TEST_INPUT_FILE);
+    remove(TEST_OUTPUT_FILE);
+    free(*cprocess);
+    cprocess = NULL;
+    lexer_process_free(*lexer_process_p);
+    *lexer_process_p = NULL;
 }

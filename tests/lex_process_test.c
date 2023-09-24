@@ -21,22 +21,35 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
-#include "compiler_test.h"
+
+#include "commons_test.h"
 #include "lex_process_test.h"
-#include "vector_test.h"
 
-void setUp(void) {    
-}
+void test_lexer(void) {
 
-void tearDown(void) {
-    void cprocess_test_cleanup(void);
-}
+    struct lexer_process_functions lexer_functions_test = {
+    .next_char = generic_next_char,
+    .peek_char = generic_peek_char,
+    .push_char = generic_push_char
+    };
 
-int main(void) {
-    UNITY_BEGIN();
-    RUN_TEST(test_vector_push_pop);
-    RUN_TEST(test_compile_process_create);
-    RUN_TEST(test_lexer_process_functions);
-    RUN_TEST(test_lexer);
-    return UNITY_END();
+    struct compile_process* cprocess = NULL;
+    struct lexer_process* lexer_process_p = NULL;
+    
+    create_input_file("2345 678 911");
+    
+    cprocess = compile_process_create(TEST_INPUT_FILE, TEST_OUTPUT_FILE, 0);
+    lexer_process_p = lexer_process_create(cprocess, &lexer_functions_test, NULL);
+
+    TEST_ASSERT_EQUAL(LEXICAL_ANALYSIS_SUCCESSFULL, lexer(lexer_process_p));
+    struct vector* tokens =  lexer_process_p->vec_tokens;
+    TEST_ASSERT_EQUAL(3, vector_count(tokens));
+    struct token* tmp_token = vector_back_or_null(tokens);
+    TEST_ASSERT_EQUAL(911, tmp_token->llnum);
+    tmp_token = vector_at(tokens,1);
+    TEST_ASSERT_EQUAL(678, tmp_token->llnum);
+
+    cprocess_cleanup(&cprocess,&lexer_process_p);
+    TEST_ASSERT_NULL(lexer_process_p);
+    return;
 }

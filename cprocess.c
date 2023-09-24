@@ -27,11 +27,13 @@ struct compile_process* compile_process_create(const char* file_input_name, cons
 
     FILE* file_input = fopen(file_input_name ,"r");
     if(!file_input){
+        fprintf(stderr,"Error at open the input file \n");
         return NULL;
     }
 
     FILE* file_output = fopen(file_output_name ,"w");
     if(!file_output){
+        fprintf(stderr,"Error at open the output file \n");
         return NULL;
     }
 
@@ -39,6 +41,7 @@ struct compile_process* compile_process_create(const char* file_input_name, cons
 
     cprocess->flags = flags;
     cprocess->code_file.input_file = file_input;
+    cprocess->code_file.absolute_path = file_input_name;
     cprocess->output_file = file_output;
     cprocess->pos.column = 1;
     cprocess->pos.line = 1;
@@ -46,7 +49,7 @@ struct compile_process* compile_process_create(const char* file_input_name, cons
     return cprocess;
 }
 
-char compile_process_next_char(struct lexer_process* lexer_process)
+char generic_next_char(struct lexer_process* lexer_process)
 {
     struct compile_process* compiler = lexer_process->compiler;
     //improvement note: compiler is changing the position
@@ -60,7 +63,7 @@ char compile_process_next_char(struct lexer_process* lexer_process)
     return c;
 }
 
-char compile_process_peek_char(struct lexer_process* lexer_process)
+char generic_peek_char(struct lexer_process* lexer_process)
 {
     struct compile_process* compiler = lexer_process->compiler;
     char c = getc(compiler->code_file.input_file);
@@ -68,7 +71,7 @@ char compile_process_peek_char(struct lexer_process* lexer_process)
     return c;
 }
 
-void compile_process_push_char(struct lexer_process* lexer_process, char c)
+void generic_push_char(struct lexer_process* lexer_process, char c)
 {
     struct compile_process* compiler = lexer_process->compiler;
     ungetc(c,compiler->code_file.input_file);

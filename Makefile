@@ -11,7 +11,10 @@ OBJECTS=compiler.o\
 	lex_process.o\
 	lexer.o
 
-OBJECTS_TEST=./tests/cprocess_test.o
+OBJECTS_TEST=./tests/compiler_test.o\
+    ./tests/commons_test.o\
+	./tests/lex_process_test.o\
+	./tests/vector_test.o
 
 INCLUDE=-I./ -I./utils
 INCLUDE_TEST= -I/usr/local/include/unity/

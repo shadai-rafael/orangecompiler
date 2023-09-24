@@ -128,15 +128,15 @@ struct lexer_process
 void compiler_error(struct compile_process* compiler,const char* msg, ...);
 int compile_file(const char* file_input_name, const char * file_output_name,int flags);
 struct compile_process* compile_process_create(const char* file_input_name, const char * file_output_name, int flags);
-char compile_process_next_char(struct lexer_process* lexer_process);
-char compile_process_peek_char(struct lexer_process* lexer_process);
-void compile_process_push_char(struct lexer_process* lexer_process, char c);
+char generic_next_char(struct lexer_process* lexer_process);
+char generic_peek_char(struct lexer_process* lexer_process);
+void generic_push_char(struct lexer_process* lexer_process, char c);
 void compiler_warning(struct compile_process* compiler,const char* msg, ...);
 
 /*Lexer Functions*/
 int lexer(struct lexer_process* lexer_process_p);
 struct lexer_process* lexer_process_create(struct compile_process* compile_process_p,
-    struct lexer_process_functions* lexer_process_functions_p, void* private_p);
+struct lexer_process_functions* lexer_process_functions_p, void* private_p);
 void lexer_process_free(struct lexer_process* lexer_process_p);
 void* get_lexer_process_private(struct lexer_process* lexer_process_p);
 struct vector* get_lexer_process_tokens(struct lexer_process* lexer_process_p);

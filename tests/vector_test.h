@@ -21,22 +21,16 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
-#include "compiler_test.h"
-#include "lex_process_test.h"
-#include "vector_test.h"
+#ifndef VECTOR_TEST_H
+#define VECTOR_TEST_H
 
-void setUp(void) {    
-}
+#include "unity.h"
 
-void tearDown(void) {
-    void cprocess_test_cleanup(void);
-}
+struct point_test{
+    int x;
+    int y;
+};
 
-int main(void) {
-    UNITY_BEGIN();
-    RUN_TEST(test_vector_push_pop);
-    RUN_TEST(test_compile_process_create);
-    RUN_TEST(test_lexer_process_functions);
-    RUN_TEST(test_lexer);
-    return UNITY_END();
-}
+void test_vector_push_pop(void);
+
+#endif /*VECTOR_TEST_H*/

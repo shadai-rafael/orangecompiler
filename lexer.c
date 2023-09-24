@@ -27,15 +27,14 @@ SOFTWARE.
 #include "utils/buffer.h"
 
 /* Static variables */
-static struct lexer_process* process;
+static struct lexer_process* lex_process;
 static struct token tmp_token;
 
 /* Macros */
-#define LEX_GETC_IF(buffer, c, expression) \
-    for (char c = peek_char(); expression; c = peek_char()) \
-    { \
-        buffer_write(buffer, c); \
-        nextc(); \
+#define LEX_GETC_IF(buffer, c, expression)\
+    for (char c = nextc(); expression; c = nextc())\
+    {\
+        buffer_write(buffer, c);\        
     } 
 
 #define NUMERIC_CASES \
@@ -50,34 +49,37 @@ static struct token tmp_token;
     case '9': \
     case '0': 
 
+#define WHITE_SPACE_CASES \
+    case ' ': \
+    case '\t': 
+
 /* Functions */
 
 static char nextc(){
-    char c = process->functions->next_char(process);
+    char c = lex_process->functions->next_char(lex_process);
     //improvement note: lexer is changing the position
-    process->pos.column++;
+    lex_process->pos.column++;
     if(c == '\n')
     {
-        process->pos.column = 1;
-        process->pos.line++; 
+        lex_process->pos.column = 1;
+        lex_process->pos.line++; 
     }
     return c;
 }
 
-static peek_char()
+static char peek_char()
 {
-    return process->functions->peek_char(process);
+    return lex_process->functions->peek_char(lex_process);
 }
 
 void push_char(char c)
 {
-    process->functions->push_char(process, c);
+    lex_process->functions->push_char(lex_process, c);
 }
-
 
 static struct position lex_file_position()
 {
-    return process->pos;
+    return lex_process->pos;
 }
 
 struct token* token_create(struct token* _token)
@@ -92,7 +94,7 @@ const char* read_number_str()
     const char* number = NULL;
     struct buffer* buffer = buffer_create();
     char c = peek_char();
-    LEX_GETC_IF(buffer, c, (c>=0 && c<=9) );
+    LEX_GETC_IF(buffer, c, (c>='0' && c<='9') );
     buffer_write(buffer, 0x00);
     return buffer_ptr(buffer);
 }
@@ -112,6 +114,13 @@ struct token* token_make_number()
     return token_make_number_for_value(read_number());
 }
 
+struct token* handle_white_space(){
+    nextc();
+    struct token* last_token = (struct token*)vector_back_or_null(lex_process->vec_tokens);
+    memcpy(&tmp_token, last_token,sizeof(struct token));
+    vector_pop(lex_process->vec_tokens);
+    return &tmp_token;
+}
 
 struct token* next_token()
 {
@@ -121,12 +130,15 @@ struct token* next_token()
     switch (c)
     {
     NUMERIC_CASES
-        token_make_number();
+        token_p = token_make_number();
+        break;
+    WHITE_SPACE_CASES
+        token_p = handle_white_space();
         break;
     case EOF:
         break;
     default:
-        compiler_error(process->compiler ,"Unexpected token");
+        compiler_error(lex_process->compiler ,"Unexpected token");
         break;
     }
 
@@ -138,13 +150,13 @@ int lexer(struct lexer_process* lexer_process_p)
     lexer_process_p->current_expression_count = 0;
     lexer_process_p->parentheses_buffer = NULL;
     lexer_process_p->pos.filename = lexer_process_p->compiler->code_file.absolute_path;
-    process = lexer_process_p;
+    lex_process = lexer_process_p;
 
     struct token* token_p = next_token();
 
     while (token_p)
     {
-        vector_push(process->vec_tokens, token_p);
+        vector_push(lex_process->vec_tokens, token_p);
         token_p = next_token();
     }
     
