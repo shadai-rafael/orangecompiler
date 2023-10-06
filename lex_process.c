@@ -21,8 +21,9 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
-#include "compiler.h"
 #include <stdlib.h>
+
+#include "compiler.h"
 
 struct lexer_process* lexer_process_create(struct compile_process* compile_process_p,
     struct lexer_process_functions* lexer_process_functions_p, void* private_p)
@@ -32,7 +33,7 @@ struct lexer_process* lexer_process_create(struct compile_process* compile_proce
     lexer_process_p->vec_tokens = vector_create(sizeof(struct token));
     lexer_process_p->private = private_p;
     lexer_process_p->compiler = compile_process_p;
-    lexer_process_p->pos.column = 1;
+    lexer_process_p->pos.column = 0;
     lexer_process_p->pos.line = 1;
 
     return lexer_process_p;

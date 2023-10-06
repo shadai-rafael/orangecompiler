@@ -25,7 +25,10 @@ SOFTWARE.
 #include "commons_test.h"
 #include "lex_process_test.h"
 
-void test_lexer(void) {
+#include <string.h>
+
+
+void test_lexer_get_numbers(void) {
 
     struct lexer_process_functions lexer_functions_test = {
     .next_char = generic_next_char,
@@ -36,7 +39,7 @@ void test_lexer(void) {
     struct compile_process* cprocess = NULL;
     struct lexer_process* lexer_process_p = NULL;
     
-    create_input_file("2345 678 911");
+    create_input_file(" 2345   678 911");
     
     cprocess = compile_process_create(TEST_INPUT_FILE, TEST_OUTPUT_FILE, 0);
     lexer_process_p = lexer_process_create(cprocess, &lexer_functions_test, NULL);
@@ -44,10 +47,101 @@ void test_lexer(void) {
     TEST_ASSERT_EQUAL(LEXICAL_ANALYSIS_SUCCESSFULL, lexer(lexer_process_p));
     struct vector* tokens =  lexer_process_p->vec_tokens;
     TEST_ASSERT_EQUAL(3, vector_count(tokens));
+
     struct token* tmp_token = vector_back_or_null(tokens);
     TEST_ASSERT_EQUAL(911, tmp_token->llnum);
+    TEST_ASSERT_EQUAL(1,tmp_token->pos.line);
+    TEST_ASSERT_EQUAL(15,tmp_token->pos.column);
+ 
     tmp_token = vector_at(tokens,1);
     TEST_ASSERT_EQUAL(678, tmp_token->llnum);
+    TEST_ASSERT_EQUAL(1,tmp_token->pos.line);
+    TEST_ASSERT_EQUAL(11,tmp_token->pos.column);
+
+    tmp_token = vector_at(tokens,0);
+    TEST_ASSERT_EQUAL(2345, tmp_token->llnum);
+    TEST_ASSERT_EQUAL(1,tmp_token->pos.line);
+    TEST_ASSERT_EQUAL(5,tmp_token->pos.column);
+
+    cprocess_cleanup(&cprocess,&lexer_process_p);
+    TEST_ASSERT_NULL(lexer_process_p);
+    return;
+}
+
+void test_lexer_get_strings(void) 
+{
+    struct lexer_process_functions lexer_functions_test = {
+    .next_char = generic_next_char,
+    .peek_char = generic_peek_char,
+    .push_char = generic_push_char
+    };
+
+    struct compile_process* cprocess = NULL;
+    struct lexer_process* lexer_process_p = NULL;
+    
+    create_input_file("\"hello\" \"world!!\"");
+    
+    cprocess = compile_process_create(TEST_INPUT_FILE, TEST_OUTPUT_FILE, 0);
+    lexer_process_p = lexer_process_create(cprocess, &lexer_functions_test, NULL);
+
+    TEST_ASSERT_EQUAL(LEXICAL_ANALYSIS_SUCCESSFULL, lexer(lexer_process_p));
+    
+    struct vector* tokens =  lexer_process_p->vec_tokens;
+    TEST_ASSERT_EQUAL(2, vector_count(tokens));
+    struct token* tmp_token = vector_back_or_null(tokens);
+    TEST_ASSERT_EQUAL(0, strcmp("world!!", tmp_token->sval));
+    TEST_ASSERT_EQUAL(1,tmp_token->pos.line);
+    TEST_ASSERT_EQUAL(17,tmp_token->pos.column);
+    
+    tmp_token = vector_at(tokens,0);
+    TEST_ASSERT_EQUAL(0, strcmp("hello", tmp_token->sval));
+    TEST_ASSERT_EQUAL(1,tmp_token->pos.line);
+    TEST_ASSERT_EQUAL(7,tmp_token->pos.column);
+
+    cprocess_cleanup(&cprocess,&lexer_process_p);
+    TEST_ASSERT_NULL(lexer_process_p);
+    return;
+}
+
+void test_lexer_get_strings_numbers(void) {
+
+    struct lexer_process_functions lexer_functions_test = {
+    .next_char = generic_next_char,
+    .peek_char = generic_peek_char,
+    .push_char = generic_push_char
+    };
+
+    struct compile_process* cprocess = NULL;
+    struct lexer_process* lexer_process_p = NULL;
+    
+    create_input_file("\"hello\" \"world!!\" 3342 5568");
+
+    cprocess = compile_process_create(TEST_INPUT_FILE, TEST_OUTPUT_FILE, 0);
+    lexer_process_p = lexer_process_create(cprocess, &lexer_functions_test, NULL);
+
+    TEST_ASSERT_EQUAL(LEXICAL_ANALYSIS_SUCCESSFULL, lexer(lexer_process_p));
+    struct vector* tokens =  lexer_process_p->vec_tokens;
+    TEST_ASSERT_EQUAL(4, vector_count(tokens));
+    
+    struct token* tmp_token = vector_back_or_null(tokens);
+    TEST_ASSERT_EQUAL(5568, tmp_token->llnum);
+    TEST_ASSERT_EQUAL(1,tmp_token->pos.line);
+    TEST_ASSERT_EQUAL(27,tmp_token->pos.column);
+    
+    tmp_token = vector_at(tokens,2);
+    TEST_ASSERT_EQUAL(3342, tmp_token->llnum);
+    TEST_ASSERT_EQUAL(1,tmp_token->pos.line);
+    TEST_ASSERT_EQUAL(22,tmp_token->pos.column);
+
+    tmp_token = vector_at(tokens,1);
+    TEST_ASSERT_EQUAL("world!!", tmp_token->sval);
+    TEST_ASSERT_EQUAL(1,tmp_token->pos.line);
+    TEST_ASSERT_EQUAL(17,tmp_token->pos.column);
+
+    tmp_token = vector_at(tokens,1);
+    TEST_ASSERT_EQUAL("hello", tmp_token->sval);
+    TEST_ASSERT_EQUAL(1,tmp_token->pos.line);
+    TEST_ASSERT_EQUAL(7,tmp_token->pos.column);
 
     cprocess_cleanup(&cprocess,&lexer_process_p);
     TEST_ASSERT_NULL(lexer_process_p);

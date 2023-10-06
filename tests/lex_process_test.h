@@ -26,6 +26,8 @@ SOFTWARE.
 
 #include "unity.h"
 
-void test_lexer(void);
+    void test_lexer_get_numbers(void);
+    void test_lexer_get_strings(void);
+    void test_lexer_get_strings_numbers(void);
 
 #endif /*LEX_PROCESS_TEST_H*/

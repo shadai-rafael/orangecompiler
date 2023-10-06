@@ -22,8 +22,10 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-#include "compiler.h"
+#include <assert.h>
 #include <string.h>
+
+#include "compiler.h"
 #include "utils/buffer.h"
 
 /* Static variables */
@@ -31,11 +33,11 @@ static struct lexer_process* lex_process;
 static struct token tmp_token;
 
 /* Macros */
-#define LEX_GETC_IF(buffer, c, expression)\
-    for (char c = nextc(); expression; c = nextc())\
-    {\
-        buffer_write(buffer, c);\        
-    } 
+#define LEX_GETC_IF(buffer, c, expression) \
+    for (c = nextc(); expression ; c = nextc()) \
+    { \
+        buffer_write(buffer, c); \        
+    }
 
 #define NUMERIC_CASES \
     case '1': \
@@ -55,7 +57,8 @@ static struct token tmp_token;
 
 /* Functions */
 
-static char nextc(){
+static char nextc()
+{
     char c = lex_process->functions->next_char(lex_process);
     //improvement note: lexer is changing the position
     lex_process->pos.column++;
@@ -85,7 +88,7 @@ static struct position lex_file_position()
 struct token* token_create(struct token* _token)
 {
     memcpy(&tmp_token, _token, sizeof(struct token));
-    tmp_token.pos = lex_file_position();
+    memcpy(&tmp_token.pos, &lex_process->pos, sizeof(struct position));    
     return &tmp_token;
 }
 
@@ -93,8 +96,8 @@ const char* read_number_str()
 {
     const char* number = NULL;
     struct buffer* buffer = buffer_create();
-    char c = peek_char();
-    LEX_GETC_IF(buffer, c, (c>='0' && c<='9') );
+    char c = 0;
+    LEX_GETC_IF(buffer, c, (c>='0' && c<='9') );    
     buffer_write(buffer, 0x00);
     return buffer_ptr(buffer);
 }
@@ -106,7 +109,10 @@ unsigned long long read_number(){
 
 struct token* token_make_number_for_value(unsigned long number)
 {
-    return token_create(&(struct token){.type=TOKEN_TYPE_NUMBER,.llnum=number});
+    struct token* _token = token_create(&(struct token){.type=TOKEN_TYPE_NUMBER,.llnum=number,
+            .withespace = false});
+    _token->pos.column--;
+    return _token;
 }
 
 struct token* token_make_number()
@@ -114,12 +120,30 @@ struct token* token_make_number()
     return token_make_number_for_value(read_number());
 }
 
-struct token* handle_white_space(){
+struct token* handle_white_space()
+{
     nextc();
-    struct token* last_token = (struct token*)vector_back_or_null(lex_process->vec_tokens);
-    memcpy(&tmp_token, last_token,sizeof(struct token));
-    vector_pop(lex_process->vec_tokens);
+    memset(&tmp_token, 0, sizeof(struct token));
+    memcpy(&tmp_token.pos, &lex_process->pos, sizeof(struct position));
+    tmp_token.withespace = true;
+    tmp_token.pos.column--;
     return &tmp_token;
+}
+
+struct token* token_make_string(char init_delm, char final_delm)
+{
+    struct buffer* buffer = buffer_create();
+    assert(nextc() == init_delm);
+    for(char c = nextc(); c!= init_delm && c!= EOF; c = nextc())
+    {
+        if(c == '\\'){
+            continue;
+        }
+        buffer_write(buffer, c);
+    }
+    buffer_write(buffer, 0x00);
+    return token_create(&(struct token){.type=TOKEN_TYPE_STRING,.sval = buffer_ptr(buffer),
+            .withespace = false});
 }
 
 struct token* next_token()
@@ -132,6 +156,9 @@ struct token* next_token()
     NUMERIC_CASES
         token_p = token_make_number();
         break;
+    case '"':
+        token_p = token_make_string('"','"');
+        break;
     WHITE_SPACE_CASES
         token_p = handle_white_space();
         break;
@@ -141,7 +168,6 @@ struct token* next_token()
         compiler_error(lex_process->compiler ,"Unexpected token");
         break;
     }
-
     return token_p;
 }
 
@@ -156,7 +182,11 @@ int lexer(struct lexer_process* lexer_process_p)
 
     while (token_p)
     {
-        vector_push(lex_process->vec_tokens, token_p);
+        if (!token_p->withespace)
+        {
+            vector_push(lex_process->vec_tokens, token_p);
+        }
+                
         token_p = next_token();
     }
     

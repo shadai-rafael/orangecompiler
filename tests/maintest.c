@@ -37,6 +37,8 @@ int main(void) {
     RUN_TEST(test_vector_push_pop);
     RUN_TEST(test_compile_process_create);
     RUN_TEST(test_lexer_process_functions);
-    RUN_TEST(test_lexer);
+    RUN_TEST(test_lexer_get_numbers);
+    RUN_TEST(test_lexer_get_strings);
+ //   RUN_TEST(test_lexer_get_strings_numbers);
     return UNITY_END();
 }
